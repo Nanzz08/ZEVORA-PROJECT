@@ -29,9 +29,14 @@ jobs:
         run: |
           cd "project_raw/BASE ZEVORA V1"
           flutter pub get
-          echo "android.newDsl=false" >> android/gradle.properties
-          echo "android.builtInKotlin=false" >> android/gradle.properties
-          flutter build apk --release --android-skip-build-dependency-validation
+          
+          # 1. Paksa naikkan versi Gradle Wrapper menjadi 9.3.1
+          sed -i 's/gradle-8.12-bin.zip/gradle-9.3.1-bin.zip/' android/gradle/wrapper/gradle-wrapper.properties
+          
+          # 2. Paksa naikkan AGP ke 9.1.1 (jaga-jaga kalau di ZIP masih versi lama)
+          sed -i 's/id("com.android.application") version "8.9.1"/id("com.android.application") version "9.1.1"/' android/settings.gradle.kts
+          
+          flutter build apk --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
