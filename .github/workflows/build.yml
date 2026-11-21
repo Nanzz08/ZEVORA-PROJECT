@@ -29,6 +29,7 @@ jobs:
         run: |
           cd "project_raw/BASE ZEVORA V1"
           flutter pub get
+          echo "android.newDsl=false" >> "project_raw/BASE ZEVORA V1/android/gradle.properties"
           flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Upload APK
