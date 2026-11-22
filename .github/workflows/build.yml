@@ -39,7 +39,7 @@ jobs:
           # 2. Hapus baris 'android.defaults.buildfeatures.buildconfig' yang udah usang
           sed -i '/android.defaults.buildfeatures.buildconfig/d' android/gradle.properties
           
-          # 3. TIMPA file build.gradle.kts dengan format AGP 9.0 (Modern DSL)
+          # 3. TIMPA file build.gradle.kts dengan format AGP 9.0
           cat << 'EOF' > android/app/build.gradle.kts
           plugins {
               id("com.android.application")
@@ -49,7 +49,7 @@ jobs:
 
           android {
               namespace = "com.example.base_zevora_v1"
-              compileSdk = flutter.compileSdkVersion
+              compileSdk = 35
               ndkVersion = flutter.ndkVersion
 
               compileOptions {
@@ -83,7 +83,10 @@ jobs:
           }
           EOF
           
-          # 4. Build APK
+          # 4. Paksa semua library pakai SDK 35
+          sed -i 's/compileSdk = 34/compileSdk = 35/g' android/app/build.gradle.kts
+          
+          # 5. Build APK
           flutter build apk --release
 
       - name: Upload APK
