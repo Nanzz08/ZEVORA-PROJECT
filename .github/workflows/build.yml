@@ -1,49 +1,58 @@
-name: Build APK
+- name: Build APK
+  run: |
+    cd "project_raw/BASE ZEVORA V1"
+    flutter pub get
+    
+    # 1. Paksa naikkan versi Gradle Wrapper menjadi 9.3.1
+    sed -i 's/gradle-8.12-all.zip/gradle-9.3.1-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+    sed -i 's/gradle-8.12-bin.zip/gradle-9.3.1-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+    
+    # 2. Hapus baris 'android.defaults.buildfeatures.buildconfig' yang udah usang
+    sed -i '/android.defaults.buildfeatures.buildconfig/d' android/gradle.properties
+    
+    # 3. TIMPA file build.gradle.kts dengan format AGP 9.0 (Modern DSL)
+    cat << 'EOF' > android/app/build.gradle.kts
+    plugins {
+        id("com.android.application")
+        id("kotlin-android")
+        id("dev.flutter.flutter-gradle-plugin")
+    }
 
-on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
+    android {
+        namespace = "com.example.base_zevora_v1" // Sesuaikan jika package name beda
+        compileSdk = flutter.compileSdkVersion
+        ndkVersion = flutter.ndkVersion
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+        compileOptions {
+            sourceCompatibility = JavaVersion.VERSION_11
+            targetCompatibility = JavaVersion.VERSION_11
+        }
 
-      - name: Extract ZIP
-        run: |
-          unzip "BASE ZEVORA V1 baru.zip" -d project_raw
+        defaultConfig {
+            applicationId = "com.example.base_zevora_v1" // Sesuaikan jika package name beda
+            minSdk = flutter.minSdkVersion
+            targetSdk = flutter.targetSdkVersion
+            versionCode = flutter.versionCode
+            versionName = flutter.versionName
+        }
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
+        buildTypes {
+            release {
+                signingConfig = signingConfigs.getByName("debug")
+            }
+        }
+    }
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.50.1'
-          channel: 'stable'
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
+    }
 
-      - name: Build APK
-        run: |
-          cd "project_raw/BASE ZEVORA V1"
-          flutter pub get
-          
-          # 1. Paksa naikkan versi Gradle Wrapper menjadi 9.3.1
-          sed -i 's/gradle-8.12-all.zip/gradle-9.3.1-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
-          sed -i 's/gradle-8.12-bin.zip/gradle-9.3.1-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
-          
-          # 2. Hapus baris 'android.defaults.buildfeatures.buildconfig' yang udah usang
-          sed -i '/android.defaults.buildfeatures.buildconfig/d' android/gradle.properties
-          
-          # 3. Build APK
-          flutter build apk --release
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: "project_raw/BASE ZEVORA V1/build/app/outputs/flutter-apk/app-release.apk"
+    flutter {
+        source = "../.."
+    }
+    EOF
+    
+    # 4. Build APK
+    flutter build apk --release
