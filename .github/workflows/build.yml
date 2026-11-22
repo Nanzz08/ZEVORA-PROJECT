@@ -3,6 +3,7 @@ name: Build APK
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -24,18 +25,18 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.50.1'
+          channel: 'stable'
 
       - name: Build APK
         run: |
           cd "project_raw/BASE ZEVORA V1"
           flutter pub get
           
-          # 1. Paksa naikkan versi Gradle Wrapper menjadi 9.3.1
-          sed -i 's/gradle-8.12-bin.zip/gradle-9.3.1-bin.zip/' android/gradle/wrapper/gradle-wrapper.properties
+          # 1. Otomatis ganti versi Gradle ke 9.3.1 (mengganti -all atau -bin)
+          sed -i 's/gradle-8.12-all.zip/gradle-9.3.1-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/gradle-8.12-bin.zip/gradle-9.3.1-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
           
-          # 2. Paksa naikkan AGP ke 9.1.1 (jaga-jaga kalau di ZIP masih versi lama)
-          sed -i 's/id("com.android.application") version "8.9.1"/id("com.android.application") version "9.1.1"/' android/settings.gradle.kts
-          
+          # 2. Build APK
           flutter build apk --release
 
       - name: Upload APK
