@@ -32,11 +32,14 @@ jobs:
           cd "project_raw/BASE ZEVORA V1"
           flutter pub get
           
-          # 1. Otomatis ganti versi Gradle ke 9.3.1 (mengganti -all atau -bin)
+          # 1. Paksa naikkan versi Gradle Wrapper menjadi 9.3.1
           sed -i 's/gradle-8.12-all.zip/gradle-9.3.1-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
           sed -i 's/gradle-8.12-bin.zip/gradle-9.3.1-bin.zip/g' android/gradle/wrapper/gradle-wrapper.properties
           
-          # 2. Build APK
+          # 2. Hapus baris 'android.defaults.buildfeatures.buildconfig' yang udah usang
+          sed -i '/android.defaults.buildfeatures.buildconfig/d' android/gradle.properties
+          
+          # 3. Build APK
           flutter build apk --release
 
       - name: Upload APK
